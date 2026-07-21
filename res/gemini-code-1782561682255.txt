@@ -1,0 +1,5 @@
+PORT=5000
+FIREBASE_PROJECT_ID=lets-read-app-mvp
+FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xyz@lets-read-app-mvp.iam.gserviceaccount.com
+# تأكد من استبدال المسافات في المفتاح بسطور جديدة عند التشغيل الحقيقي
+FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQC...\n-----END PRIVATE KEY-----\n"
