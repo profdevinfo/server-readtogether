@@ -1,5 +1,6 @@
 const { db, admin } = require('../config/firebase');
 const { getMessages } = require('../config/messages');
+const rewardsController = require('./rewardsController');
 
 // جلب جميع الإختبارات المتاحة للطفل
 exports.getQuizzes = async (req, res) => {
@@ -86,7 +87,7 @@ exports.verifyQuizCode = async (req, res) => {
 exports.submitQuiz = async (req, res) => {
   const t = getMessages(req);
   try {
-    const { childId, quizId, activityId, quizTitle, activityTitle, score, duration } = req.body;
+    const { childId, quizId, activityId, quizTitle, activityTitle, score, duration, language, isFirstAttempt, retries } = req.body;
 
     if (!childId) {
       return res.status(400).json({ error: 'childId is required' });
@@ -104,6 +105,7 @@ exports.submitQuiz = async (req, res) => {
       quizTitle: quizTitle || activityTitle || 'Quiz',
       score: Number(score),
       duration: Number(duration),
+      language: language || 'en',
       motivationalQuote,
       createdAt: admin.firestore.FieldValue.serverTimestamp()
     };
@@ -111,7 +113,38 @@ exports.submitQuiz = async (req, res) => {
     const resultRef = await db.collection('childresults').add(payload);
     await db.collection('activity_logs').add({ ...payload, resultId: resultRef.id });
 
-    res.status(201).json({ resultId: resultRef.id, ...payload });
+    // ── معالجة المكافآت: حساب النقاط، تحديث السلسلة، الشارات، المستوى ──
+    let rewards = null;
+    try {
+      const activityResult = {
+        score: Number(score),
+        isPerfect: Number(score) === 10,
+        isFirstAttempt: isFirstAttempt !== undefined ? Boolean(isFirstAttempt) : true,
+        retries: Number(retries) || 0
+      };
+      rewards = await rewardsController.processActivityReward(childId, activityResult);
+
+      // حفظ سجل النقاط في points_history
+      if (rewards && rewards.earnedPoints > 0) {
+        await db.collection('points_history').add({
+          childId,
+          points: rewards.earnedPoints,
+          reason: 'activity_completion',
+          activityId: quizId || activityId || null,
+          activityTitle: quizTitle || activityTitle || 'Quiz',
+          score: Number(score),
+          level: rewards.level,
+          leveledUp: rewards.leveledUp || false,
+          newBadges: rewards.newBadges || [],
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    } catch (rewardError) {
+      console.error('Error processing activity reward:', rewardError);
+      // لا نوقف الاستجابة إذا فشلت المكافآت - النتيجة محفوظة بالفعل
+    }
+
+    res.status(201).json({ resultId: resultRef.id, ...payload, rewards });
   } catch (error) {
     console.error('Error saving quiz result:', error);
     res.status(500).json({ error: t.saveResultError });

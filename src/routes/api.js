@@ -6,14 +6,59 @@ const activityController = require('../controllers/activityController');
 const quizController = require('../controllers/quizController');
 const rewardsController = require('../controllers/rewardsController');
 
+// router.post('/auth/child-login', authController.loginChild);
+// router.post('/auth/parent-login', authController.loginParent);
+// router.get('/activities', activityController.getActivities);
+// router.post('/activities/verify', activityController.verifyActivityCode);
+// router.post('/activities/submit', activityController.submitActivity);
+// router.get('/quizzes', quizController.getQuizzes);
+// router.post('/quizzes/verify', quizController.verifyQuizCode);
+// router.post('/quizzes/submit', quizController.submitQuiz);
+
+// مسارات المصادقة
 router.post('/auth/child-login', authController.loginChild);
 router.post('/auth/parent-login', authController.loginParent);
+
+// مسارات الأنشطة للطفل
 router.get('/activities', activityController.getActivities);
 router.post('/activities/verify', activityController.verifyActivityCode);
 router.post('/activities/submit', activityController.submitActivity);
+
+// مسارات الإختبارات للطفل
 router.get('/quizzes', quizController.getQuizzes);
 router.post('/quizzes/verify', quizController.verifyQuizCode);
 router.post('/quizzes/submit', quizController.submitQuiz);
+
+
+// مسارات الإدارة والإحصائيات لولي الأمر
+router.get('/parent/stats/:parentId', activityController.getParentStats);
+router.get('/parent/children/:parentId', activityController.getChildren);
+router.put('/parent/children/:childId/name', activityController.updateChildName);
+router.put('/parent/children/:childId/avatar', activityController.updateChildAvatar);
+router.put('/parent/children/:childId/status', activityController.toggleChildStatus);
+router.post('/parent/activities', activityController.createActivity);
+router.delete('/parent/activities/:id', activityController.deleteActivity);
+
+// ═══ مسارات نظام المكافآت ═════════════════════════════════════
+// مسارات الطفل
+router.get('/rewards/:childId', rewardsController.getChildRewards);
+router.get('/rewards/:childId/history', rewardsController.getPointsHistory);
+router.get('/rewards/:childId/gifts', rewardsController.getChildGifts);
+router.get('/rewards/:childId/praises', rewardsController.getChildPraises);
+router.post('/rewards/redeem', rewardsController.redeemGift);
+
+// مسارات الوالد
+router.post('/parent/gifts', rewardsController.createParentGift);
+router.post('/parent/praise', rewardsController.sendParentPraise);
+router.put('/parent/praise/:praiseId/read', rewardsController.markPraiseRead);
+router.get('/parent/gifts/:parentId', rewardsController.getParentGifts);
+router.put('/parent/gifts/:giftId/approve', rewardsController.approveGift);
+router.delete('/parent/gifts/:giftId', rewardsController.deleteGift);
+router.get('/parent/leaderboard/:familySubscriptionId', rewardsController.getLeaderboard);
+
+
+
+
 
 
 // Middleware للتحقق من أن المستخدم Admin
@@ -36,19 +81,6 @@ const isAdmin = async (req, res, next) => {
 };
 
 
-router.get('/rewards/:childId', rewardsController.getChildRewards);
-router.get('/rewards/:childId/history', rewardsController.getPointsHistory);
-router.get('/rewards/:childId/gifts', rewardsController.getChildGifts);
-router.get('/rewards/:childId/praises', rewardsController.getChildPraises);
-router.post('/rewards/redeem', rewardsController.redeemGift);
-// مسارات الوالد
-router.post('/parent/gifts', rewardsController.createParentGift);
-router.post('/parent/praise', rewardsController.sendParentPraise);
-router.put('/parent/praise/:praiseId/read', rewardsController.markPraiseRead);
-router.get('/parent/gifts/:parentId', rewardsController.getParentGifts);
-router.put('/parent/gifts/:giftId/approve', rewardsController.approveGift);
-router.delete('/parent/gifts/:giftId', rewardsController.deleteGift);
-router.get('/parent/leaderboard/:familySubscriptionId', rewardsController.getLeaderboard);
 // إنشاء مستخدم جديد (الإضافة الجديدة)
 router.post('/create-user', isAdmin, async (req, res) => {
   const { email, password, displayName, role } = req.body;

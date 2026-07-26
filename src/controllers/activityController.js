@@ -1,5 +1,6 @@
 const { db, admin } = require('../config/firebase');
 const { getMessages } = require('../config/messages');
+const rewardsController = require('./rewardsController');
 
 // جلب جميع الأنشطة المتاحة للطفل
 exports.getActivities = async (req, res) => {
@@ -37,7 +38,7 @@ exports.verifyActivityCode = async (req, res) => {
 exports.submitActivity = async (req, res) => {
   const t = getMessages(req);
   try {
-    const { childId, activityId, activityTitle, score, duration } = req.body;
+    const { childId, activityId, activityTitle, score, duration, isFirstAttempt, retries } = req.body;
     
     // تحديد العبارة التحفيزية بناءً على النتيجة من 10
     let motivationalQuote = '';
@@ -57,7 +58,39 @@ exports.submitActivity = async (req, res) => {
     };
 
     const docRef = await db.collection('activity_logs').add(logData);
-    res.status(201).json({ logId: docRef.id, ...logData });
+
+    // ── معالجة المكافآت: حساب النقاط، تحديث السلسلة، الشارات، المستوى ──
+    let rewards = null;
+    try {
+      const activityResult = {
+        score: Number(score),
+        isPerfect: Number(score) === 10,
+        isFirstAttempt: isFirstAttempt !== undefined ? Boolean(isFirstAttempt) : true,
+        retries: Number(retries) || 0
+      };
+      rewards = await rewardsController.processActivityReward(childId, activityResult);
+
+      // حفظ سجل النقاط في points_history
+      if (rewards && rewards.earnedPoints > 0) {
+        await db.collection('points_history').add({
+          childId,
+          points: rewards.earnedPoints,
+          type: 'activity_completion',
+          activityId: activityId || null,
+          activityTitle: activityTitle || 'Activity',
+          score: Number(score),
+          level: rewards.level,
+          leveledUp: rewards.leveledUp || false,
+          newBadges: rewards.newBadges || [],
+          createdAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+      }
+    } catch (rewardError) {
+      console.error('Error processing activity reward:', rewardError);
+      // لا نوقف الاستجابة إذا فشلت المكافآت - النتيجة محفوظة بالفعل
+    }
+
+    res.status(201).json({ logId: docRef.id, ...logData, rewards });
   } catch (error) {
     res.status(500).json({ error: t.saveResultError });
   }
@@ -101,6 +134,7 @@ exports.getParentStats = async (req, res) => {
       return {
         id: doc.id,
         childName: childrenMap[data.childId] || t.unknownChild,
+        activityTitle : data.quizTitle || data.activityTitle || '',
         ...data,
         createdAt: data.createdAt ? data.createdAt.toDate() : new Date()
       };
@@ -141,7 +175,8 @@ exports.getChildren = async (req, res) => {
         id: doc.id,
         name: data.name || '',
         accessCode: data.accessCode || '',
-        isActive: data.isActive !== false
+        isActive: data.isActive !== false,
+        avatar:data.avatar || null
       };
     });
     
@@ -151,21 +186,56 @@ exports.getChildren = async (req, res) => {
   }
 };
 
-// تحديث اسم الطفل
+// تحديث اسم و Avatar الطفل
 exports.updateChildName = async (req, res) => {
   const t = getMessages(req);
   try {
     const { childId } = req.params;
-    const { name } = req.body;
+    const { name, avatar } = req.body;
     
-    if (!name || !name.trim()) {
+    const updateData = {};
+    if (name && name.trim()) {
+      updateData.name = name.trim();
+    }
+    if (avatar !== undefined) {
+      const normalizedAvatar = avatar && typeof avatar === 'object' && avatar.style && avatar.seed
+        ? { style: String(avatar.style), seed: String(avatar.seed) }
+        : null;
+
+      if (normalizedAvatar) {
+        updateData.avatar = normalizedAvatar;
+      }
+    }
+
+    if (Object.keys(updateData).length === 0) {
       return res.status(400).json({ error: t.nameRequired });
     }
     
-    await db.collection('childrens').doc(childId).update({ name: name.trim() });
-    res.status(200).json({ success: true, name: name.trim() });
+    await db.collection('childrens').doc(childId).update(updateData);
+    res.status(200).json({ success: true, ...updateData });
   } catch (error) {
     res.status(500).json({ error: t.updateNameError });
+  }
+};
+
+// تحديث Avatar الطفل
+exports.updateChildAvatar = async (req, res) => {
+  try {
+    const { childId } = req.params;
+    const { avatar } = req.body;
+
+    const normalizedAvatar = avatar && typeof avatar === 'object' && avatar.style && avatar.seed
+      ? { style: String(avatar.style), seed: String(avatar.seed) }
+      : null;
+
+    if (!normalizedAvatar) {
+      return res.status(400).json({ error: 'بيانات avatar غير صالحة' });
+    }
+
+    await db.collection('childrens').doc(childId).update({ avatar: normalizedAvatar });
+    res.status(200).json({ success: true, avatar: normalizedAvatar });
+  } catch (error) {
+    res.status(500).json({ error: 'فشل في تحديث صورة الطفل' });
   }
 };
 

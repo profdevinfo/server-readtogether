@@ -169,13 +169,30 @@ exports.getChildRewards = async (req, res) => {
 exports.getPointsHistory = async (req, res) => {
   try {
     const { childId } = req.params;
-    const snapshot = await db.collection('points_history')
-      .where('childId', '==', childId)
-      .orderBy('createdAt', 'desc')
-      .limit(50)
-      .get();
+    let snapshot;
+    try {
+      snapshot = await db.collection('points_history')
+        .where('childId', '==', childId)
+        .orderBy('createdAt', 'desc')
+        .limit(50)
+        .get();
+    } catch (orderError) {
+      // الفشل غالباً بسبب عدم وجود Composite Index أو حقل createdAt
+      // نتعامل معه بالترتيب في الذاكرة
+      console.warn('getPointsHistory: orderBy fallback:', orderError.message);
+      snapshot = await db.collection('points_history')
+        .where('childId', '==', childId)
+        .limit(50)
+        .get();
+    }
 
-    const history = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let history = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // ترتيب في الذاكرة عند الفallback
+    history.sort((a, b) => {
+      const ta = a.createdAt?._seconds || (a.createdAt instanceof Date ? a.createdAt.getTime() / 1000 : 0);
+      const tb = b.createdAt?._seconds || (b.createdAt instanceof Date ? b.createdAt.getTime() / 1000 : 0);
+      return tb - ta;
+    });
     return res.status(200).json(history);
   } catch (error) {
     console.error('getPointsHistory error:', error);
@@ -217,12 +234,25 @@ exports.createParentGift = async (req, res) => {
 exports.getChildGifts = async (req, res) => {
   try {
     const { childId } = req.params;
-    const snapshot = await db.collection('parent_gifts')
-      .where('childId', '==', childId)
-      .orderBy('createdAt', 'desc')
-      .get();
+    let snapshot;
+    try {
+      snapshot = await db.collection('parent_gifts')
+        .where('childId', '==', childId)
+        .orderBy('createdAt', 'desc')
+        .get();
+    } catch (orderError) {
+      console.warn('getChildGifts: orderBy fallback:', orderError.message);
+      snapshot = await db.collection('parent_gifts')
+        .where('childId', '==', childId)
+        .get();
+    }
 
     const gifts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    gifts.sort((a, b) => {
+      const ta = a.createdAt?._seconds || (a.createdAt instanceof Date ? a.createdAt.getTime() / 1000 : 0);
+      const tb = b.createdAt?._seconds || (b.createdAt instanceof Date ? b.createdAt.getTime() / 1000 : 0);
+      return tb - ta;
+    });
     return res.status(200).json(gifts);
   } catch (error) {
     console.error('getChildGifts error:', error);
@@ -234,12 +264,25 @@ exports.getChildGifts = async (req, res) => {
 exports.getParentGifts = async (req, res) => {
   try {
     const { parentId } = req.params;
-    const snapshot = await db.collection('parent_gifts')
-      .where('parentId', '==', parentId)
-      .orderBy('createdAt', 'desc')
-      .get();
+    let snapshot;
+    try {
+      snapshot = await db.collection('parent_gifts')
+        .where('parentId', '==', parentId)
+        .orderBy('createdAt', 'desc')
+        .get();
+    } catch (orderError) {
+      console.warn('getParentGifts: orderBy fallback:', orderError.message);
+      snapshot = await db.collection('parent_gifts')
+        .where('parentId', '==', parentId)
+        .get();
+    }
 
     const gifts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    gifts.sort((a, b) => {
+      const ta = a.createdAt?._seconds || (a.createdAt instanceof Date ? a.createdAt.getTime() / 1000 : 0);
+      const tb = b.createdAt?._seconds || (b.createdAt instanceof Date ? b.createdAt.getTime() / 1000 : 0);
+      return tb - ta;
+    });
     return res.status(200).json(gifts);
   } catch (error) {
     console.error('getParentGifts error:', error);
@@ -381,12 +424,27 @@ exports.sendParentPraise = async (req, res) => {
 exports.getChildPraises = async (req, res) => {
   try {
     const { childId } = req.params;
-    const snapshot = await db.collection('child_praises')
-      .where('childId', '==', childId)
-      .orderBy('createdAt', 'desc')
-      .limit(20)
-      .get();
-    const praises = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    let snapshot;
+    try {
+      snapshot = await db.collection('child_praises')
+        .where('childId', '==', childId)
+        .orderBy('createdAt', 'desc')
+        .limit(20)
+        .get();
+    } catch (orderError) {
+      console.warn('getChildPraises: orderBy fallback:', orderError.message);
+      snapshot = await db.collection('child_praises')
+        .where('childId', '==', childId)
+        .limit(20)
+        .get();
+    }
+
+    let praises = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    praises.sort((a, b) => {
+      const ta = a.createdAt?._seconds || (a.createdAt instanceof Date ? a.createdAt.getTime() / 1000 : 0);
+      const tb = b.createdAt?._seconds || (b.createdAt instanceof Date ? b.createdAt.getTime() / 1000 : 0);
+      return tb - ta;
+    });
     return res.status(200).json(praises);
   } catch (error) {
     console.error('getChildPraises error:', error);
