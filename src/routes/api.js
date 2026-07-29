@@ -6,6 +6,21 @@ const activityController = require('../controllers/activityController');
 const quizController = require('../controllers/quizController');
 const rewardsController = require('../controllers/rewardsController');
 
+// IP-based rate limiter for auth routes (safety net against brute force)
+let authLimiter = (req, res, next) => next(); // no-op fallback if package missing
+try {
+  const rateLimit = require('express-rate-limit');
+  authLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 20, // max 20 requests per minute per IP
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: 'Too many requests from this IP. Please try again later.' },
+  });
+} catch (err) {
+  console.warn('express-rate-limit not installed — auth rate limiting disabled.');
+}
+
 // router.post('/auth/child-login', authController.loginChild);
 // router.post('/auth/parent-login', authController.loginParent);
 // router.get('/activities', activityController.getActivities);
@@ -15,9 +30,9 @@ const rewardsController = require('../controllers/rewardsController');
 // router.post('/quizzes/verify', quizController.verifyQuizCode);
 // router.post('/quizzes/submit', quizController.submitQuiz);
 
-// مسارات المصادقة
-router.post('/auth/child-login', authController.loginChild);
-router.post('/auth/parent-login', authController.loginParent);
+// مسارات المصادقة (مع تحديد عدد الطلبات لكل IP)
+router.post('/auth/child-login', authLimiter, authController.loginChild);
+router.post('/auth/parent-login', authLimiter, authController.loginParent);
 
 // مسارات الأنشطة للطفل
 router.get('/activities', activityController.getActivities);

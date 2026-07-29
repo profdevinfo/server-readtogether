@@ -12,6 +12,13 @@ const messages = {
     subscriptionExpired: 'Family subscription has expired',
     serverError: 'An error occurred on the server during login',
     invalidParentCode: 'Invalid parent code',
+    // Login attempts & account lock
+    tooManyAttempts: 'Too many failed attempts. Please try again in 1 hour.',
+    accountLocked: 'Your account has been locked due to too many failed attempts. Please contact support.',
+    deviceBlocked: 'Too many failed attempts from this device. Please try again later.',
+    attemptsRemaining: 'attempts remaining',
+    // Subscription warnings
+    subscriptionExpiringSoon: 'Your subscription will expire in {days} days. Please renew to keep access.',
     // activityController
     fetchActivitiesFailed: 'Failed to fetch activities',
     activityNotFound: 'Activity not found',
@@ -52,6 +59,13 @@ const messages = {
     subscriptionExpired: "L'abonnement familial a expiré",
     serverError: "Une erreur s'est produite sur le serveur lors de la connexion",
     invalidParentCode: 'Code parent invalide',
+    // Login attempts & account lock
+    tooManyAttempts: "Trop de tentatives échouées. Veuillez réessayer dans 1 heure.",
+    accountLocked: "Votre compte a été verrouillé en raison de trop nombreuses tentatives échouées. Veuillez contacter le support.",
+    deviceBlocked: "Trop de tentatives échouées depuis cet appareil. Veuillez réessayer plus tard.",
+    attemptsRemaining: "tentatives restantes",
+    // Subscription warnings
+    subscriptionExpiringSoon: "Votre abonnement expirera dans {days} jours. Veuillez le renouveler pour garder l'accès.",
     // activityController
     fetchActivitiesFailed: 'Échec de la récupération des activités',
     activityNotFound: 'Activité introuvable',
@@ -92,6 +106,13 @@ const messages = {
     subscriptionExpired: 'الاشتراك العائلي منتهي',
     serverError: 'حدث خطأ في الخادم أثناء تسجيل الدخول',
     invalidParentCode: 'رمز الولي غير صحيح',
+    // Login attempts & account lock
+    tooManyAttempts: 'محاولات دخول كثيرة فاشلة. يرجى المحاولة مرة أخرى بعد ساعة واحدة.',
+    accountLocked: 'تم توقيف حسابك بسبب كثرة محاولات الدخول الفاشلة. يرجى التواصل مع الدعم.',
+    deviceBlocked: 'محاولات كثيرة فاشلة من هذا الجهاز. يرجى المحاولة لاحقاً.',
+    attemptsRemaining: 'محاولات متبقية',
+    // Subscription warnings
+    subscriptionExpiringSoon: 'سينتهي اشتراكك خلال {days} يومًا. يرجى التجديد للحفاظ على الوصول.',
     // activityController
     fetchActivitiesFailed: 'فشل في جلب الأنشطة',
     activityNotFound: 'النشاط غير موجود',
