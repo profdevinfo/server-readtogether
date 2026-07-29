@@ -48,6 +48,13 @@ const messages = {
     subscriptionNotLinkedToBookPack: 'Subscription is not linked to any book pack',
     bookPackNotFound: 'Book pack not found',
     quizNotInBookPack: 'This activity does not belong to your subscription book pack',
+    // Retake attempts
+    maxAttemptsReached: 'You have reached the maximum number of attempts (3) for this activity.',
+    quizAlreadyCompleted: 'You have already completed this activity.',
+    retakeQuiz: 'Retake the activity',
+    lastScore: 'Your last score',
+    attemptsUsed: 'Attempts used',
+    attemptsRemainingMsg: 'Attempts remaining',
   },
   fr: {
     codeRequired: 'Le code est requis',
@@ -95,6 +102,13 @@ const messages = {
     subscriptionNotLinkedToBookPack: 'L\'abonnement n\'est lié à aucune collection de livres',
     bookPackNotFound: 'Collection de livres introuvable',
     quizNotInBookPack: 'Cette activité n\'appartient pas à la collection de livres de ton abonnement',
+    // Retake attempts
+    maxAttemptsReached: 'Vous avez atteint le nombre maximum de tentatives (3) pour cette activité.',
+    quizAlreadyCompleted: 'Vous avez déjà terminé cette activité.',
+    retakeQuiz: 'Refaire l\'activité',
+    lastScore: 'Votre dernier score',
+    attemptsUsed: 'Tentatives utilisées',
+    attemptsRemainingMsg: 'Tentatives restantes',
   },
   ar: {
     codeRequired: 'الرمز مطلوب',
@@ -142,6 +156,13 @@ const messages = {
     subscriptionNotLinkedToBookPack: 'الاشتراك غير مرتبط بأي باقة كتب',
     bookPackNotFound: 'باقة الكتب غير موجودة',
     quizNotInBookPack: 'هذا النشاط لا ينتمي إلى باقة الكتب الخاصة باشتراكك',
+    // Retake attempts
+    maxAttemptsReached: 'لقد وصلت إلى الحد الأقصى من المحاولات (3) لهذا النشاط.',
+    quizAlreadyCompleted: 'لقد أكملت هذا النشاط سابقاً.',
+    retakeQuiz: 'إعادة الاختبار',
+    lastScore: 'نتيجتك الأخيرة',
+    attemptsUsed: 'المحاولات المستخدمة',
+    attemptsRemainingMsg: 'المحاولات المتبقية',
   },
 };
 
