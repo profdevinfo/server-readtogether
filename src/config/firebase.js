@@ -3,7 +3,8 @@ const { getAuth } = require('firebase-admin/auth');
 const { getFirestore, FieldValue, FieldPath } = require('firebase-admin/firestore');
 require('dotenv').config();
 
-const serviceAccount = require('./serviceAccountKey.json');
+// const serviceAccount = require('./serviceAccountKey.json');
+const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
 
 const app = initializeApp({
   credential: cert(serviceAccount)
